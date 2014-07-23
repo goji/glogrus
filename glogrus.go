@@ -47,7 +47,7 @@ func (glogr glogrus) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 }
 
 // Custom takes a logrus instace and name of the service
-// as parameters and returns glogrus
+// as parameters and returns glogrus http.Handler
 func Custom(l *logrus.Logger, name string) func(*web.C, http.Handler) http.Handler {
 	fn := func(c *web.C, h http.Handler) http.Handler {
 		return glogrus{h: h, c: c, l: l, name: name}
@@ -55,7 +55,7 @@ func Custom(l *logrus.Logger, name string) func(*web.C, http.Handler) http.Handl
 	return fn
 }
 
-// New returns glogrus
+// New returns a glogrus http.Handler
 func New() func(*web.C, http.Handler) http.Handler {
 	fn := func(c *web.C, h http.Handler) http.Handler {
 		log := logrus.New()
