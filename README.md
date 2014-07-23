@@ -27,6 +27,8 @@ func main() {
 
 Consider using glogrus.Custom() for more control over the logrus instance and service name
 
+- - -
+
 
 #### Looking for hierarchical structured logging?
 [slog](https://github.com/zenazn/slog) and [lunk](https://github.com/codahale/lunk) looks interesting.
