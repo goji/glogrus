@@ -1,4 +1,4 @@
-# goji/glogrus [![GoDoc](https://godoc.org/github.com/goji/glogrus?status.png)](https://godoc.org/github.com/goji/glogrus) [![Build Status](https://travis-ci.org/goji/glogrus.svg)](https://travis-ci.org/goji/glogrus)
+# goji/glogrus [![GoDoc](https://godoc.org/github.com/goji/glogrus?status.png)](https://godoc.org/github.com/goji/glogrus)
 
 glogrus provides structured logging via logrus for Goji. 
 
@@ -9,15 +9,19 @@ glogrus provides structured logging via logrus for Goji.
 
 package main
 
-import (
-	"github.com/goji/glogrus"
+import(
 	"github.com/zenazn/goji"
 	"github.com/zenazn/goji/web/middleware"
+	"github.com/goji/glogrus"
+	"github.com/Sirupsen/logrus"
 )
 
 func main() {
 	goji.Abandon(middleware.Logger)
-	goji.Use(glogrus.New())
+
+	logr := logrus.New()
+	logr.Formatter = new(logrus.JSONFormatter)
+	goji.Use(glogrus.NewGlogrus(logr, "my-app-name"))
 
 	goji.Get("/ping", yourHandler)
 	goji.Serve()

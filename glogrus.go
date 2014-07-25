@@ -41,27 +41,40 @@ func (glogr glogrus) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		"method":  req.Method,
 		"uri":     req.RequestURI,
 		"remote":  req.RemoteAddr,
-		"latency": fmt.Sprintf("%7.7f ms", latency),
+		"latency": fmt.Sprintf("%6.4f ms", latency),
 		"app":     glogr.name,
 	}).Info("req_served")
 }
 
-// Custom takes a logrus instace and name of the service
-// as parameters and returns glogrus http.Handler
-func Custom(l *logrus.Logger, name string) func(*web.C, http.Handler) http.Handler {
+// NewGlogrus allows you to configure a goji middleware that logs all requests and responses
+// using the structured logger logrus. It takes the logrus instance and the name of the app
+// as the parameters and returns a middleware of type "func(c *web.C, http.Handler) http.Handler"
+//
+// Example:
+//
+//		package main
+//
+//		import(
+//			"github.com/zenazn/goji"
+//			"github.com/zenazn/goji/web/middleware"
+//			"github.com/goji/glogrus"
+//			"github.com/Sirupsen/logrus"
+//		)
+//
+//		func main() {
+//			goji.Abandon(middleware.Logger)
+//
+//			logr := logrus.New()
+//			logr.Formatter = new(logrus.JSONFormatter)
+//			goji.Use(glogrus.NewGlogrus(logr, "my-app-name"))
+//
+//			goji.Get("/ping", yourHandler)
+//			goji.Serve()
+//		}
+//
+func NewGlogrus(l *logrus.Logger, name string) func(*web.C, http.Handler) http.Handler {
 	fn := func(c *web.C, h http.Handler) http.Handler {
 		return glogrus{h: h, c: c, l: l, name: name}
-	}
-	return fn
-}
-
-// New returns a glogrus http.Handler
-func New() func(*web.C, http.Handler) http.Handler {
-	fn := func(c *web.C, h http.Handler) http.Handler {
-		log := logrus.New()
-		log.Level = logrus.Info
-		log.Formatter = &logrus.TextFormatter{}
-		return glogrus{h: h, c: c, l: log, name: "*"}
 	}
 	return fn
 }
