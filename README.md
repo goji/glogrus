@@ -29,8 +29,6 @@ func main() {
 
 ```
 
-Consider using glogrus.Custom() for more control over the logrus instance and service name
-
 - - -
 
 
