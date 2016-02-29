@@ -6,37 +6,40 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/zenazn/goji/web"
-	"github.com/zenazn/goji/web/middleware"
+	"goji.io"
+	"golang.org/x/net/context"
 )
 
 // glogrus is a middleware handler that logs the
 // request and response in a structured way
 type glogrus struct {
-	h    http.Handler
-	c    *web.C
+	h    goji.Handler
+	c    context.Context
 	l    *logrus.Logger
 	name string
 }
 
 func (glogr glogrus) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	start := time.Now()
-	reqID := middleware.GetReqID(*glogr.c)
+	
+	//TODO: figure out how to get a proper reqId in the context
+	//reqID := middleware.GetReqID(*glogr.c)
+	
 	glogr.l.WithFields(logrus.Fields{
-		"req_id": reqID,
+		//"req_id": reqID,
 		"uri":    req.RequestURI,
 		"method": req.Method,
 		"remote": req.RemoteAddr,
 	}).Info("req_start")
 	lresp := wrapWriter(resp)
 
-	glogr.h.ServeHTTP(lresp, req)
+	glogr.h.ServeHTTPC(glogr.c, lresp, req)
 	lresp.maybeWriteHeader()
 
 	latency := float64(time.Since(start)) / float64(time.Millisecond)
 
 	glogr.l.WithFields(logrus.Fields{
-		"req_id":  reqID,
+		//"req_id":  reqID,
 		"status":  lresp.status(),
 		"method":  req.Method,
 		"uri":     req.RequestURI,
@@ -62,7 +65,6 @@ func (glogr glogrus) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 //		)
 //
 //		func main() {
-//			goji.Abandon(middleware.Logger)
 //
 //			logr := logrus.New()
 //			logr.Formatter = new(logrus.JSONFormatter)
@@ -72,9 +74,38 @@ func (glogr glogrus) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 //			goji.Serve()
 //		}
 //
-func NewGlogrus(l *logrus.Logger, name string) func(*web.C, http.Handler) http.Handler {
-	fn := func(c *web.C, h http.Handler) http.Handler {
-		return glogrus{h: h, c: c, l: l, name: name}
+func NewGlogrus(l *logrus.Logger, name string) func(goji.Handler) goji.Handler {
+	return func(h goji.Handler) goji.Handler {
+		fn := func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+			start := time.Now()
+
+			//TODO: figure out how to get a proper reqId in the context
+			//reqID := middleware.GetReqID(*glogr.c)
+
+			l.WithFields(logrus.Fields{
+				//"req_id": reqID,
+				"uri":    r.RequestURI,
+				"method": r.Method,
+				"remote": r.RemoteAddr,
+			}).Info("req_start")
+			lresp := wrapWriter(w)
+
+			h.ServeHTTPC(ctx, lresp, r)
+			lresp.maybeWriteHeader()
+
+			latency := float64(time.Since(start)) / float64(time.Millisecond)
+
+			l.WithFields(logrus.Fields{
+				//"req_id":  reqID,
+				"status":  lresp.status(),
+				"method":  r.Method,
+				"uri":     r.RequestURI,
+				"remote":  r.RemoteAddr,
+				"latency": fmt.Sprintf("%6.4f ms", latency),
+				"app":     name,
+			}).Info("req_served")
+		}
+		return goji.HandlerFunc(fn)
 	}
-	return fn
+
 }
