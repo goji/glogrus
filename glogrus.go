@@ -21,10 +21,10 @@ type glogrus struct {
 
 func (glogr glogrus) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	start := time.Now()
-	
+
 	//TODO: figure out how to get a proper reqId in the context
 	//reqID := middleware.GetReqID(*glogr.c)
-	
+
 	glogr.l.WithFields(logrus.Fields{
 		//"req_id": reqID,
 		"uri":    req.RequestURI,
