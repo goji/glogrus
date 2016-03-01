@@ -75,15 +75,18 @@ func (glogr glogrus) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 //		}
 //
 func NewGlogrus(l *logrus.Logger, name string) func(goji.Handler) goji.Handler {
+	return NewGlogrusWithReqId(l, name, emptyRequestId)
+}
+
+func NewGlogrusWithReqId(l *logrus.Logger, name string, reqidf func(context.Context) string) func(goji.Handler) goji.Handler {
 	return func(h goji.Handler) goji.Handler {
 		fn := func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 
-			//TODO: figure out how to get a proper reqId in the context
-			//reqID := middleware.GetReqID(*glogr.c)
+			reqID := reqidf(ctx)
 
 			l.WithFields(logrus.Fields{
-				//"req_id": reqID,
+				"req_id": reqID,
 				"uri":    r.RequestURI,
 				"method": r.Method,
 				"remote": r.RemoteAddr,
@@ -96,7 +99,7 @@ func NewGlogrus(l *logrus.Logger, name string) func(goji.Handler) goji.Handler {
 			latency := float64(time.Since(start)) / float64(time.Millisecond)
 
 			l.WithFields(logrus.Fields{
-				//"req_id":  reqID,
+				"req_id":  reqID,
 				"status":  lresp.status(),
 				"method":  r.Method,
 				"uri":     r.RequestURI,
@@ -108,4 +111,8 @@ func NewGlogrus(l *logrus.Logger, name string) func(goji.Handler) goji.Handler {
 		return goji.HandlerFunc(fn)
 	}
 
+}
+
+func emptyRequestId(ctx context.Context) string {
+	return ""
 }
