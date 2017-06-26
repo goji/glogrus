@@ -13,7 +13,7 @@ import(
 	"github.com/zenazn/goji"
 	"github.com/zenazn/goji/web/middleware"
 	"github.com/goji/glogrus"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
