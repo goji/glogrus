@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/zenazn/goji/web"
 	"github.com/zenazn/goji/web/middleware"
 )
@@ -58,7 +58,7 @@ func (glogr glogrus) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 //			"github.com/zenazn/goji"
 //			"github.com/zenazn/goji/web/middleware"
 //			"github.com/goji/glogrus"
-//			"github.com/Sirupsen/logrus"
+//			"github.com/sirupsen/logrus"
 //		)
 //
 //		func main() {
